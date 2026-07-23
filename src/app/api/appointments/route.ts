@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getServiceClient } from "@/lib/supabase/server";
 import { sendSms } from "@/lib/sms";
 import { sendPushNotification } from "@/lib/push";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, renderBookingConfirmationEmail } from "@/lib/email";
 
 const bodySchema = z.object({
   shopId: z.string().uuid(),
@@ -130,8 +130,13 @@ export async function POST(request: Request) {
   if (customer.email) {
     await sendEmail(
       customer.email,
-      "You're booked at Big Hit Barbershop",
-      `<p>Hi ${customerName},</p><p>You're confirmed for <strong>${confirmationMessage}</strong>.</p><p>See you soon!</p><p>— Big Hit Barbershop</p>`
+      `You're booked for ${service.name} on ${when}`,
+      renderBookingConfirmationEmail({
+        customerName,
+        serviceName: service.name,
+        barberName: barberInfo?.name,
+        when,
+      })
     ).catch((err) => console.error("[appointments] confirmation email failed", err));
     confirmed = true;
   }
