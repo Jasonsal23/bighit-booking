@@ -61,6 +61,8 @@ export interface Service {
 export interface Customer {
   id: string;
   shop_id: string;
+  auth_user_id: string | null;
+  email: string | null;
   name: string;
   phone: string;
   last_visit_at: string | null;
