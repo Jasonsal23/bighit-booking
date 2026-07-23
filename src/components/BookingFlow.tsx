@@ -526,7 +526,7 @@ function AnyBarberCard({ selected, onClick }: { selected: boolean; onClick: () =
         selected ? "ring-4 ring-[var(--accent)]" : "hover:scale-[1.02]"
       }`}
     >
-      <div className="flex aspect-square w-full items-center justify-center bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a] p-2">
+      <div className="flex aspect-square w-full items-center justify-center bg-white p-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/barbers/any-barber-logo.png" alt="Any barber" className="h-full w-full object-contain" />
       </div>
