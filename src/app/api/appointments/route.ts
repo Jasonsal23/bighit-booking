@@ -4,6 +4,7 @@ import { getServiceClient } from "@/lib/supabase/server";
 import { sendSms } from "@/lib/sms";
 import { sendPushNotification } from "@/lib/push";
 import { sendEmail, renderBookingConfirmationEmail } from "@/lib/email";
+import { buildManageUrl } from "@/lib/manageToken";
 
 const bodySchema = z.object({
   shopId: z.string().uuid(),
@@ -118,6 +119,7 @@ export async function POST(request: Request) {
   // they gave one, and SMS only as a last resort for guests with neither —
   // SMS is the only channel with a real per-message cost.
   const confirmationMessage = `${service.name}${barberInfo?.name ? ` with ${barberInfo.name}` : ""} on ${when}`;
+  const manageUrl = buildManageUrl(appointment.id);
   let confirmed = false;
 
   if (customer.push_token) {
@@ -136,6 +138,7 @@ export async function POST(request: Request) {
         serviceName: service.name,
         barberName: barberInfo?.name,
         when,
+        manageUrl,
       })
     ).catch((err) => console.error("[appointments] confirmation email failed", err));
     confirmed = true;
@@ -144,7 +147,7 @@ export async function POST(request: Request) {
   if (!confirmed) {
     await sendSms(
       customerPhone,
-      `Big Hit Barbershop: You're booked for ${confirmationMessage}. Reply to reschedule.`
+      `Big Hit Barbershop: You're booked for ${confirmationMessage}. Manage your booking: ${manageUrl}`
     ).catch((err) => console.error("[appointments] confirmation SMS failed", err));
   }
 

@@ -50,6 +50,7 @@ export function renderBookingConfirmationEmail(args: {
   serviceName: string;
   barberName?: string;
   when: string;
+  manageUrl: string;
 }): string {
   return emailShell(
     `You're booked for ${args.serviceName} on ${args.when}`,
@@ -65,8 +66,17 @@ export function renderBookingConfirmationEmail(args: {
           </td>
         </tr>
       </table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+        <tr>
+          <td align="center">
+            <a href="${args.manageUrl}" style="display:inline-block;background:linear-gradient(135deg,#c41e3a,#a01830);color:#ffffff;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;padding:12px 28px;border-radius:25px;">
+              Manage Booking
+            </a>
+          </td>
+        </tr>
+      </table>
       <p style="margin:0 0 4px 0;font-size:13px;color:#666666;line-height:1.5;">
-        Need to cancel or reschedule? You can manage your appointment from the Big Hit Barbershop app, up to 3 hours before your appointment time.
+        Need to cancel? Use the button above, up to 3 hours before your appointment time.
       </p>
       <p style="margin:20px 0 0 0;font-size:14px;color:#1a1a1a;">See you soon!</p>
     `
