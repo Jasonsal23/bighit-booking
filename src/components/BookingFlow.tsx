@@ -258,7 +258,7 @@ export default function BookingFlow({ shopId }: { shopId: string }) {
 
       {step === "barber" && (
         <StepShell title="Choose a barber">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="flex flex-col gap-3">
             <AnyBarberCard selected={isAnyBarber} onClick={() => selectBarber(ANY_BARBER)} />
             {barbers.map((b) => (
               <BarberCard
@@ -494,26 +494,29 @@ function BarberCard({
   return (
     <button
       onClick={onClick}
-      className={`overflow-hidden rounded-2xl bg-white text-center shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-transform ${
-        selected ? "ring-4 ring-[var(--accent)]" : "hover:scale-[1.02]"
+      className={`flex w-full items-center overflow-hidden rounded-2xl bg-white text-left shadow-[0_6px_20px_rgba(0,0,0,0.25)] transition-transform ${
+        selected ? "ring-4 ring-[var(--accent)]" : "hover:scale-[1.01]"
       }`}
     >
-      <div className="aspect-square w-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-light)]">
+      <div className="h-[72px] w-[72px] shrink-0 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-light)]">
         {barber.photo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={barber.photo_url} alt={barber.name} className="h-full w-full object-cover" />
         ) : (
-          <div className="font-display flex h-full w-full items-center justify-center text-3xl text-white">
+          <div className="font-display flex h-full w-full items-center justify-center text-2xl text-white">
             {initials(barber.name)}
           </div>
         )}
       </div>
-      <div className="flex flex-col items-center gap-0.5 bg-gradient-to-b from-white to-[#f8f8f8] px-2 py-3">
-        <span className="text-sm font-bold text-[#1a1a1a]">{barber.name}</span>
+      <div className="flex flex-1 flex-col gap-0.5 px-4 py-3">
+        <span className="text-base font-bold text-[#1a1a1a]">{barber.name}</span>
         {barber.role === "owner" && (
-          <span className="text-[10px] uppercase tracking-wide text-[var(--accent)]">Owner</span>
+          <span className="text-[11px] uppercase tracking-wide text-[var(--accent)]">Owner</span>
         )}
       </div>
+      <span className={`px-4 text-xl font-bold ${selected ? "text-[var(--accent)]" : "text-zinc-300"}`}>
+        {selected ? "✓" : "›"}
+      </span>
     </button>
   );
 }
@@ -522,18 +525,21 @@ function AnyBarberCard({ selected, onClick }: { selected: boolean; onClick: () =
   return (
     <button
       onClick={onClick}
-      className={`overflow-hidden rounded-2xl bg-white text-center shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-transform ${
-        selected ? "ring-4 ring-[var(--accent)]" : "hover:scale-[1.02]"
+      className={`flex w-full items-center overflow-hidden rounded-2xl bg-white text-left shadow-[0_6px_20px_rgba(0,0,0,0.25)] transition-transform ${
+        selected ? "ring-4 ring-[var(--accent)]" : "hover:scale-[1.01]"
       }`}
     >
-      <div className="flex aspect-square w-full items-center justify-center bg-white p-3">
+      <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center bg-white p-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/barbers/any-barber-logo.png" alt="Any barber" className="h-full w-full object-contain" />
       </div>
-      <div className="flex flex-col items-center gap-0.5 bg-gradient-to-b from-white to-[#f8f8f8] px-2 py-3">
-        <span className="text-sm font-bold text-[#1a1a1a]">Any barber</span>
-        <span className="text-[10px] uppercase tracking-wide text-[var(--muted)]">First available</span>
+      <div className="flex flex-1 flex-col gap-0.5 px-4 py-3">
+        <span className="text-base font-bold text-[#1a1a1a]">Any barber</span>
+        <span className="text-[11px] uppercase tracking-wide text-[var(--muted)]">First available</span>
       </div>
+      <span className={`px-4 text-xl font-bold ${selected ? "text-[var(--accent)]" : "text-zinc-300"}`}>
+        {selected ? "✓" : "›"}
+      </span>
     </button>
   );
 }
