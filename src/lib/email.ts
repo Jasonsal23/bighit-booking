@@ -83,6 +83,42 @@ export function renderBookingConfirmationEmail(args: {
   );
 }
 
+export function renderAppointmentReminderEmail(args: {
+  customerName: string;
+  serviceName: string;
+  barberName?: string;
+  when: string;
+  label: string;
+  manageUrl: string;
+}): string {
+  return emailShell(
+    `Reminder: ${args.serviceName} ${args.label.toLowerCase()}`,
+    `
+      <h1 style="margin:0 0 4px 0;font-size:20px;color:#1a1a1a;">Reminder, ${args.customerName}</h1>
+      <p style="margin:0 0 20px 0;font-size:14px;color:#666666;line-height:1.5;">${args.label}: your appointment is coming up.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f8f8;border-radius:10px;margin-bottom:20px;">
+        <tr>
+          <td style="padding:16px 18px;">
+            <p style="margin:0 0 6px 0;font-size:16px;font-weight:700;color:#1a1a1a;">${args.serviceName}</p>
+            ${args.barberName ? `<p style="margin:0 0 6px 0;font-size:13px;color:#666666;">with ${args.barberName}</p>` : ""}
+            <p style="margin:0;font-size:13px;color:#666666;">${args.when}</p>
+          </td>
+        </tr>
+      </table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+        <tr>
+          <td align="center">
+            <a href="${args.manageUrl}" style="display:inline-block;background:linear-gradient(135deg,#c41e3a,#a01830);color:#ffffff;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;padding:12px 28px;border-radius:25px;">
+              Manage Booking
+            </a>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:0;font-size:14px;color:#1a1a1a;">See you soon!</p>
+    `
+  );
+}
+
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {

@@ -1,5 +1,7 @@
 import { getServiceClient } from "@/lib/supabase/server";
 import { sendPushNotification } from "@/lib/push";
+import { sendEmail, renderAppointmentReminderEmail } from "@/lib/email";
+import { buildManageUrl } from "@/lib/manageToken";
 import type { ReminderType } from "@/lib/supabase/types";
 
 const COMEBACK_DAYS = 14;
@@ -61,7 +63,9 @@ export async function runReminderSweep(): Promise<SweepResult> {
     const windowEnd = new Date(now.getTime() + windowHours * 60 * 60 * 1000);
     const { data: appts, error } = await supabase
       .from("appointments")
-      .select("id, customer_id, start_time, services(name), barbers(name), customers(push_token)")
+      .select(
+        "id, customer_id, customer_name, start_time, services(name), barbers(name), customers(push_token, email)"
+      )
       .eq("status", "booked")
       .gte("start_time", now.toISOString())
       .lte("start_time", windowEnd.toISOString());
@@ -77,17 +81,42 @@ export async function runReminderSweep(): Promise<SweepResult> {
 
       const service = appt.services as unknown as { name: string } | null;
       const barber = appt.barbers as unknown as { name: string } | null;
-      const customer = appt.customers as unknown as { push_token: string | null } | null;
-      if (!customer?.push_token) continue;
+      const customer = appt.customers as unknown as { push_token: string | null; email: string | null } | null;
+      if (!customer?.push_token && !customer?.email) continue;
 
       if (await alreadySent(supabase, customerId, appt.id, type)) continue;
 
-      await sendPushNotification(
-        customer.push_token,
-        "Appointment Reminder",
-        `${label}: ${service?.name ?? "your appointment"}${barber?.name ? ` with ${barber.name}` : ""} at ${formatWhen(appt.start_time)}`,
-        { appointmentId: appt.id }
-      );
+      const when = formatWhen(appt.start_time);
+      let sent = false;
+
+      if (customer.push_token) {
+        await sendPushNotification(
+          customer.push_token,
+          "Appointment Reminder",
+          `${label}: ${service?.name ?? "your appointment"}${barber?.name ? ` with ${barber.name}` : ""} at ${when}`,
+          { appointmentId: appt.id }
+        );
+        sent = true;
+      }
+
+      if (customer.email) {
+        await sendEmail(
+          customer.email,
+          `Reminder: ${service?.name ?? "your appointment"} ${label.toLowerCase()}`,
+          renderAppointmentReminderEmail({
+            customerName: appt.customer_name,
+            serviceName: service?.name ?? "your appointment",
+            barberName: barber?.name,
+            when,
+            label,
+            manageUrl: buildManageUrl(appt.id),
+          })
+        ).catch((err) => result.errors.push(`${type} email: ${err instanceof Error ? err.message : String(err)}`));
+        sent = true;
+      }
+
+      if (!sent) continue;
+
       await logReminder(supabase, customerId, appt.id, type);
       if (type === "24h_reminder") result.sent24h++;
       else result.sent1h++;
