@@ -1,6 +1,7 @@
 export type AppointmentStatus = "booked" | "completed" | "no_show" | "cancelled";
 export type PaymentStatus = "unpaid" | "paid";
 export type AppointmentSource = "online" | "manual";
+export type ReminderType = "24h_reminder" | "1h_reminder" | "comeback";
 
 export interface Shop {
   id: string;
