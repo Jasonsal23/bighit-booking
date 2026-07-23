@@ -86,6 +86,15 @@ export default function BookingFlow({ shopId }: { shopId: string }) {
     setStep(id === ANY_BARBER ? "opening" : "service");
   }
 
+  function goBackToBarber() {
+    setSelectedBarberId("");
+    setPinnedBarberId("");
+    setPreferredStartTime("");
+    setSelectedServiceId("");
+    setSelectedSlot(null);
+    setStep("barber");
+  }
+
   function selectOpening(slot: Slot) {
     setPinnedBarberId(slot.barberId);
     setPreferredStartTime(slot.startTime);
@@ -273,7 +282,7 @@ export default function BookingFlow({ shopId }: { shopId: string }) {
       )}
 
       {step === "opening" && (
-        <StepShell title="Choose a time" onBack={() => setStep("barber")}>
+        <StepShell title="Choose a time" onBack={goBackToBarber}>
           <DatePicker days={days} selectedDate={selectedDate} onSelect={setSelectedDate} />
 
           {loading && <p className="text-sm text-[var(--muted)]">Loading openings…</p>}
@@ -306,7 +315,7 @@ export default function BookingFlow({ shopId }: { shopId: string }) {
       {step === "service" && (
         <StepShell
           title="Choose a service"
-          onBack={() => setStep(isAnyBarber ? "opening" : "barber")}
+          onBack={() => (isAnyBarber ? setStep("opening") : goBackToBarber())}
         >
           {loading && <p className="mb-2 text-sm text-[var(--muted)]">Loading services…</p>}
           <div className="flex flex-col gap-2">
