@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase/server";
 import { getAuthedCustomer, AuthError } from "@/lib/auth";
+import { sendPushNotification } from "@/lib/push";
 
 const CANCEL_CUTOFF_HOURS = 3;
 
@@ -37,11 +38,27 @@ export async function POST(request: Request, ctx: RouteContext<"/api/customer/ap
       .from("appointments")
       .update({ status: "cancelled" })
       .eq("id", id)
-      .select("*, barbers(name), services(name, duration_minutes)")
+      .select("*, barbers(name, push_token), services(name, duration_minutes)")
       .single();
     if (updateError || !updated) {
       return NextResponse.json({ error: "Failed to cancel appointment" }, { status: 500 });
     }
+
+    const barberInfo = (updated as unknown as { barbers: { name: string; push_token: string | null } | null })
+      .barbers;
+    const when = new Date(updated.start_time).toLocaleString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    await sendPushNotification(
+      barberInfo?.push_token,
+      "Appointment Cancelled",
+      `${customer.name} cancelled their ${when} appointment`,
+      { appointmentId: updated.id }
+    );
 
     return NextResponse.json({ appointment: updated });
   } catch (err) {

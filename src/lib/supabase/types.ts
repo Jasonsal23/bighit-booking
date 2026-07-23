@@ -46,6 +46,7 @@ export interface Barber {
   role: "barber" | "owner";
   active: boolean;
   sort_order: number;
+  push_token: string | null;
 }
 
 export interface Service {
@@ -66,6 +67,7 @@ export interface Customer {
   name: string;
   phone: string;
   last_visit_at: string | null;
+  push_token: string | null;
 }
 
 export interface Appointment {

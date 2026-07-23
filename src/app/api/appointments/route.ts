@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getServiceClient } from "@/lib/supabase/server";
 import { sendSms } from "@/lib/sms";
+import { sendPushNotification } from "@/lib/push";
 
 const bodySchema = z.object({
   shopId: z.string().uuid(),
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
       end_time: end.toISOString(),
       source: "online",
     })
-    .select("*, barbers(name)")
+    .select("*, barbers(name, push_token)")
     .single();
 
   if (appointmentError) {
@@ -93,7 +94,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to create appointment" }, { status: 500 });
   }
 
-  const barberName = (appointment as unknown as { barbers: { name: string } | null }).barbers?.name;
+  const barberInfo = (appointment as unknown as { barbers: { name: string; push_token: string | null } | null })
+    .barbers;
   const when = start.toLocaleString("en-US", {
     weekday: "short",
     month: "short",
@@ -104,8 +106,22 @@ export async function POST(request: Request) {
 
   await sendSms(
     customerPhone,
-    `Big Hit Barbershop: You're booked for ${service.name}${barberName ? ` with ${barberName}` : ""} on ${when}. Reply to reschedule.`
+    `Big Hit Barbershop: You're booked for ${service.name}${barberInfo?.name ? ` with ${barberInfo.name}` : ""} on ${when}. Reply to reschedule.`
   ).catch((err) => console.error("[appointments] confirmation SMS failed", err));
+
+  await sendPushNotification(
+    barberInfo?.push_token,
+    "New Booking",
+    `${customerName} booked ${service.name} on ${when}`,
+    { appointmentId: appointment.id }
+  );
+
+  await sendPushNotification(
+    customer.push_token,
+    "You're Booked!",
+    `${service.name}${barberInfo?.name ? ` with ${barberInfo.name}` : ""} on ${when}`,
+    { appointmentId: appointment.id }
+  );
 
   return NextResponse.json({ appointment }, { status: 201 });
 }
