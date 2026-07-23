@@ -27,9 +27,20 @@ export interface BarberHours {
   is_closed: boolean;
 }
 
+export interface BarberTimeOff {
+  id: string;
+  barber_id: string;
+  date: string;
+  is_closed: boolean;
+  open_time: string | null;
+  close_time: string | null;
+  reason: string | null;
+}
+
 export interface Barber {
   id: string;
   shop_id: string;
+  auth_user_id: string | null;
   name: string;
   photo_url: string | null;
   role: "barber" | "owner";

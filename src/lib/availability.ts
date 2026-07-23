@@ -1,6 +1,6 @@
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { getServiceClient } from "@/lib/supabase/server";
-import type { Shop, BarberHours, Service } from "@/lib/supabase/types";
+import type { Shop, BarberHours, BarberTimeOff, Service } from "@/lib/supabase/types";
 
 const SLOT_STEP_MINUTES = 15;
 
@@ -56,6 +56,17 @@ async function computeSlotsForCandidates(
     hoursByBarber.set(h.barber_id, h);
   }
 
+  const { data: timeOffRows } = await supabase
+    .from("barber_time_off")
+    .select("*")
+    .in("barber_id", barberIds)
+    .eq("date", date);
+
+  const timeOffByBarber = new Map<string, BarberTimeOff>();
+  for (const t of (timeOffRows ?? []) as BarberTimeOff[]) {
+    timeOffByBarber.set(t.barber_id, t);
+  }
+
   const { data: existingAppointments } = await supabase
     .from("appointments")
     .select("barber_id, start_time, end_time")
@@ -77,11 +88,28 @@ async function computeSlotsForCandidates(
 
   const slots: AvailableSlot[] = [];
   for (const candidate of candidates) {
+    const timeOff = timeOffByBarber.get(candidate.barberId);
     const hours = hoursByBarber.get(candidate.barberId);
-    if (!hours || hours.is_closed || !hours.open_time || !hours.close_time) continue;
 
-    const dayStartUtc = fromZonedTime(`${date}T${hours.open_time}`, shop.timezone);
-    const dayEndUtc = fromZonedTime(`${date}T${hours.close_time}`, shop.timezone);
+    // A time-off row for this exact date always wins over the recurring
+    // weekly schedule: closed means closed even on an otherwise-working day,
+    // and a custom open/close range overrides the usual hours for that day.
+    let openTime: string | null;
+    let closeTime: string | null;
+    if (timeOff) {
+      if (timeOff.is_closed) continue;
+      openTime = timeOff.open_time;
+      closeTime = timeOff.close_time;
+    } else if (hours && !hours.is_closed) {
+      openTime = hours.open_time;
+      closeTime = hours.close_time;
+    } else {
+      continue;
+    }
+    if (!openTime || !closeTime) continue;
+
+    const dayStartUtc = fromZonedTime(`${date}T${openTime}`, shop.timezone);
+    const dayEndUtc = fromZonedTime(`${date}T${closeTime}`, shop.timezone);
 
     const busy = busyByBarber.get(candidate.barberId) ?? [];
     const durationMs = candidate.durationMinutes * 60_000;
