@@ -10,6 +10,7 @@ const bodySchema = z.object({
   startTime: z.string().datetime(),
   customerName: z.string().min(1).max(120),
   customerPhone: z.string().min(7).max(20),
+  customerEmail: z.string().email().max(200).optional(),
 });
 
 const POSTGRES_EXCLUSION_VIOLATION = "23P01";
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { shopId, serviceId, barberId, startTime, customerName, customerPhone } = parsed.data;
+  const { shopId, serviceId, barberId, startTime, customerName, customerPhone, customerEmail } = parsed.data;
   const supabase = getServiceClient();
 
   // The client always sends the barberId + serviceId from a real slot it
@@ -50,7 +51,14 @@ export async function POST(request: Request) {
   const { data: customer, error: customerError } = await supabase
     .from("customers")
     .upsert(
-      { shop_id: shopId, name: customerName, phone: customerPhone },
+      {
+        shop_id: shopId,
+        name: customerName,
+        phone: customerPhone,
+        // Omitted (not set to null) when not provided, so a returning
+        // customer's existing email on file isn't wiped out by a guest booking.
+        ...(customerEmail ? { email: customerEmail } : {}),
+      },
       { onConflict: "shop_id,phone" }
     )
     .select()
