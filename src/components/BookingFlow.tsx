@@ -519,9 +519,13 @@ function BarberCard({
       </div>
       <div className="flex flex-1 flex-col gap-0.5 px-4 py-3">
         <span className="text-base font-bold text-[#1a1a1a]">{barber.name}</span>
-        {barber.role === "owner" && (
-          <span className="text-[11px] uppercase tracking-wide text-[var(--accent)]">Owner</span>
-        )}
+        <span
+          className={`text-[11px] uppercase tracking-wide ${
+            barber.role === "owner" ? "text-[var(--accent)]" : "text-[var(--muted)]"
+          }`}
+        >
+          {barber.role === "owner" ? "Owner" : "Barber"}
+        </span>
       </div>
       <span className={`px-4 text-xl font-bold ${selected ? "text-[var(--accent)]" : "text-zinc-300"}`}>
         {selected ? "✓" : "›"}

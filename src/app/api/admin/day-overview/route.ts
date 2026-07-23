@@ -10,16 +10,14 @@ const querySchema = z.object({
 });
 
 /**
- * Master view for the owner: every active barber's working window for the
- * day (accounting for time-off overrides) plus their appointments, so the
- * whole shop's schedule can be rendered as one side-by-side hourly grid.
+ * Full shop schedule: every active barber's working window for the day
+ * (accounting for time-off overrides) plus their appointments, so the whole
+ * shop's schedule can be rendered as one side-by-side hourly grid. Any
+ * signed-in barber can view this, not just the owner.
  */
 export async function GET(request: Request) {
   try {
     const barber = await getAuthedBarber(request);
-    if (barber.role !== "owner") {
-      return NextResponse.json({ error: "Owner access only" }, { status: 403 });
-    }
 
     const parsed = querySchema.safeParse(Object.fromEntries(new URL(request.url).searchParams));
     if (!parsed.success) {
@@ -43,7 +41,7 @@ export async function GET(request: Request) {
       .select("*")
       .eq("shop_id", barber.shop_id)
       .eq("active", true)
-      .order("created_at");
+      .order("sort_order");
     const barberList = (barbers ?? []) as Barber[];
     const barberIds = barberList.map((b) => b.id);
 

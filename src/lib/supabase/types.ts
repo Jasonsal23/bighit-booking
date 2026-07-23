@@ -45,6 +45,7 @@ export interface Barber {
   photo_url: string | null;
   role: "barber" | "owner";
   active: boolean;
+  sort_order: number;
 }
 
 export interface Service {
