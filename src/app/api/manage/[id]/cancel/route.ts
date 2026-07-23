@@ -50,6 +50,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/manage/[id]
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "America/Los_Angeles",
   });
   await sendPushNotification(
     barberInfo?.push_token,

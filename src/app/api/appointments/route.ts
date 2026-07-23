@@ -104,6 +104,7 @@ export async function POST(request: Request) {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "America/Los_Angeles",
   });
 
   // Always notify the barber by push regardless of how the customer gets

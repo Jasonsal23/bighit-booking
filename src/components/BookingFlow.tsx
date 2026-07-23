@@ -295,6 +295,7 @@ export default function BookingFlow({ shopId }: { shopId: string }) {
               const time = new Date(slot.startTime).toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "2-digit",
+                timeZone: "America/Los_Angeles",
               });
               const barberName = barbers.find((b) => b.id === slot.barberId)?.name;
               return (
@@ -346,6 +347,7 @@ export default function BookingFlow({ shopId }: { shopId: string }) {
               const time = new Date(slot.startTime).toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "2-digit",
+                timeZone: "America/Los_Angeles",
               });
               return (
                 <button
@@ -374,6 +376,7 @@ export default function BookingFlow({ shopId }: { shopId: string }) {
                 day: "numeric",
                 hour: "numeric",
                 minute: "2-digit",
+                timeZone: "America/Los_Angeles",
               })}
               {selectedSlotBarber ? ` · ${selectedSlotBarber.name}` : ""}
             </p>
