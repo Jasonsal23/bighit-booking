@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getServiceClient } from "@/lib/supabase/server";
 import { sendSms } from "@/lib/sms";
 import { sendPushNotification } from "@/lib/push";
+import { sendEmail } from "@/lib/email";
 
 const bodySchema = z.object({
   shopId: z.string().uuid(),
@@ -104,11 +105,8 @@ export async function POST(request: Request) {
     minute: "2-digit",
   });
 
-  await sendSms(
-    customerPhone,
-    `Big Hit Barbershop: You're booked for ${service.name}${barberInfo?.name ? ` with ${barberInfo.name}` : ""} on ${when}. Reply to reschedule.`
-  ).catch((err) => console.error("[appointments] confirmation SMS failed", err));
-
+  // Always notify the barber by push regardless of how the customer gets
+  // confirmed below.
   await sendPushNotification(
     barberInfo?.push_token,
     "New Booking",
@@ -116,12 +114,34 @@ export async function POST(request: Request) {
     { appointmentId: appointment.id }
   );
 
-  await sendPushNotification(
-    customer.push_token,
-    "You're Booked!",
-    `${service.name}${barberInfo?.name ? ` with ${barberInfo.name}` : ""} on ${when}`,
-    { appointmentId: appointment.id }
-  );
+  // Customer confirmation: push if they're logged into the app, email if
+  // they gave one, and SMS only as a last resort for guests with neither —
+  // SMS is the only channel with a real per-message cost.
+  const confirmationMessage = `${service.name}${barberInfo?.name ? ` with ${barberInfo.name}` : ""} on ${when}`;
+  let confirmed = false;
+
+  if (customer.push_token) {
+    await sendPushNotification(customer.push_token, "You're Booked!", confirmationMessage, {
+      appointmentId: appointment.id,
+    });
+    confirmed = true;
+  }
+
+  if (customer.email) {
+    await sendEmail(
+      customer.email,
+      "You're booked at Big Hit Barbershop",
+      `<p>Hi ${customerName},</p><p>You're confirmed for <strong>${confirmationMessage}</strong>.</p><p>See you soon!</p><p>— Big Hit Barbershop</p>`
+    ).catch((err) => console.error("[appointments] confirmation email failed", err));
+    confirmed = true;
+  }
+
+  if (!confirmed) {
+    await sendSms(
+      customerPhone,
+      `Big Hit Barbershop: You're booked for ${confirmationMessage}. Reply to reschedule.`
+    ).catch((err) => console.error("[appointments] confirmation SMS failed", err));
+  }
 
   return NextResponse.json({ appointment }, { status: 201 });
 }
