@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --background: #1a1a1a;
+  --background-deep: #0d0d0d;
+  --foreground: #ffffff;
+  --card: #232323;
+  --card-border: #333333;
+  --muted: #b3b3b3;
+  --accent: #c41e3a;
+  --accent-light: #ff6b6b;
+  --accent-dark: #a01830;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-titillium);
+  --font-display: var(--font-archivo);
+}
+
+body {
+  background: linear-gradient(180deg, var(--background), var(--background-deep));
+  color: var(--foreground);
+  font-family: var(--font-titillium), "Titillium Web", Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+.font-display {
+  font-family: var(--font-archivo), "Archivo Black", sans-serif;
+}
+
+.brand-divider {
+  height: 3px;
+  width: 60px;
+  margin: 10px auto 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light), var(--accent));
+  border-radius: 2px;
+}
+
+.brand-button {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border-radius: 25px;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.brand-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent-light), var(--accent));
+  box-shadow: 0 5px 20px rgba(196, 30, 58, 0.4);
+}
+
+.brand-button:disabled {
+  opacity: 0.35;
+}
