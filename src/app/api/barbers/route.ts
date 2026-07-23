@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     .select("id, name, photo_url, role")
     .eq("shop_id", shopId)
     .eq("active", true)
-    .order("name");
+    .order("created_at");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
