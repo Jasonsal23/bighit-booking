@@ -11,7 +11,7 @@ export async function GET(request: Request) {
       .from("appointments")
       .select("*, barbers(name), services(name, duration_minutes)")
       .eq("customer_id", customer.id)
-      .order("start_time", { ascending: false });
+      .order("start_time", { ascending: true });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ appointments: data });
